@@ -3,6 +3,9 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:usb_serial/transaction.dart';
 import 'package:usb_serial/usb_serial.dart';
+// import 'package:flutter_hooks/flutter_hooks.dart';
+// import 'package:permission_handler/permission_handler.dart';
+// import 'dart:io';
 
 void main() => runApp(const MyApp());
 
@@ -10,20 +13,27 @@ class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
+  // List latestData = [];
   UsbPort? _port;
   String _status = "Idle";
   List<Widget> _ports = [];
-  List<Widget> _serialData = [];
+  // ignore: prefer_final_fields
+  List<Widget> _serialData = [Text("please wait")];
 
   StreamSubscription<String>? _subscription;
   Transaction<String>? _transaction;
   UsbDevice? _device;
 
+  // ignore: prefer_final_fields, unused_field
   TextEditingController _textController = TextEditingController();
+
+  
+  
 
   Future<bool> _connectTo(device) async {
     _serialData.clear();
@@ -68,7 +78,8 @@ class _MyAppState extends State<MyApp> {
 
     _subscription = _transaction!.stream.listen((String line) {
       setState(() {
-        _serialData.add(Text(line));
+        // _serialData.add(Text(line));
+        _serialData = [Text(line)];
         if (_serialData.length > 20) {
           _serialData.removeAt(0);
         }
@@ -80,6 +91,19 @@ class _MyAppState extends State<MyApp> {
     });
     return true;
   }
+
+  // Future<bool> requestFilePermission() async {
+  //   PermissionStatus result;
+  //   // In Android we need to request the storage permission,
+  //   // while in iOS is the photos permission
+  //   if (Platform.isAndroid) {
+  //     result = await Permission.storage.request();
+  //     print("platform is android");
+  //   } else {
+  //     print("platform is not android");
+  //   }
+  //   return false;
+  // }
 
   void _getPorts() async {
     _ports = [];
@@ -129,6 +153,8 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: avoid_print
+    print(_serialData);
     return MaterialApp(
         home: Scaffold(
       appBar: AppBar(
@@ -142,7 +168,7 @@ class _MyAppState extends State<MyApp> {
         Text('info: ${_port.toString()}\n'),
         
         Text("Result Data", style: Theme.of(context).textTheme.titleLarge),
-        ..._serialData,
+      ..._serialData,
         // _serialData.length > 0 ?  Text("Result Data", style: Theme.of(context).textTheme.titleLarge),
         // _serialData[_serialData.length-1]
       ])),
