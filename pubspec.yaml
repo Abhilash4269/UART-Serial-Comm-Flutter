@@ -38,6 +38,10 @@ dependencies:
   usb_serial: ^0.4.0
   permission_handler: ^10.3.0
   flutter_hooks: ^0.18.6
+  csv: ^5.0.2
+  external_path: ^1.0.3
+  excel: ^2.1.0
+  # ext_storage: ^2.0.0
   # flutter_libserialport: ^0.3.0
 
 dev_dependencies:
