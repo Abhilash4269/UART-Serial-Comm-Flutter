@@ -1,26 +1,15 @@
 // ignore_for_file: non_constant_identifier_names, prefer_interpolation_to_compose_strings
-
-// import 'dart:html';
-
 import 'package:flutter/material.dart';
 import 'dart:async';
-// import 'dart:typed_data';
 import 'package:usb_serial/transaction.dart';
 import 'package:usb_serial/usb_serial.dart';
-// import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/services.dart';
-// import './tableMaterial.dart';
-import 'package:csv/csv.dart';
 import 'package:excel/excel.dart';
+// ignore: depend_on_referenced_packages
 import 'package:path/path.dart';
-// import 'package:external_path/external_path.dart';
-// import 'package:ext_storage/ext_storage.dart';
-
-// import 'package:path_provider/path_provider.dart';
-// import './classX.dart' show X;
+import './screen2.dart';
 
 class X {
   final String Time;
@@ -49,6 +38,20 @@ class X {
   final String T_sense2;
   final String T_sense3;
   final String T_sense4;
+  // final String Distance;
+  // final String Ax;
+  // final String Ay;
+  // final String Az;
+
+  // final String YAW;
+  // final String PITCH;
+  // final String Roll;
+  // final String POT_F;
+  // final String POT_R;
+  // final String CurrentDC;
+  // final String CurrentAC;
+  // final String Pressure1;
+  // final String Pressure2;
 
   X(
       this.Time,
@@ -76,8 +79,21 @@ class X {
       this.T_sense1,
       this.T_sense2,
       this.T_sense3,
-      this.T_sense4);
-
+      this.T_sense4)
+  // this.Distance,
+  // this.Ax,
+  // this.Ay,
+  // this.Az,
+  // this.YAW,
+  // this.PITCH,
+  // this.Roll,
+  // this.POT_F,
+  // this.POT_R,
+  // this.CurrentDC,
+  // this.CurrentAC,
+  // this.Pressure1,
+  // this.Pressure2);
+  ;
   X.fromJson(Map<String, dynamic> json)
       : Time = json['Time'],
         Speed = json['Speed'],
@@ -105,6 +121,19 @@ class X {
         T_sense2 = json['T_sense2'],
         T_sense3 = json['T_sense3'],
         T_sense4 = json['T_sense4'];
+  // Distance = json['Distance'],
+  // Ax = json['Ax'],
+  // Ay = json['Ay'],
+  // Az = json['Az'],
+  // YAW = json['YAW'],
+  // PITCH = json['PITCH'],
+  // Roll = json['Roll'],
+  // POT_F = json['POT_F'],
+  // POT_R = json['POT_R'],
+  // CurrentDC = json['CurrentDC'],
+  // CurrentAC = json['CurrentAC'],
+  // Pressure1 = json['Pressure1'],
+  // Pressure2 = json['Pressure2'];
 
   Map<String, dynamic> toJson() => {
         'Time': Time,
@@ -132,7 +161,20 @@ class X {
         'T_sense1': T_sense1,
         'T_sense2': T_sense2,
         'T_sense3': T_sense3,
-        'T_sense4': T_sense4
+        'T_sense4': T_sense4,
+        // 'Distance': Distance,
+        // 'Ax': Ax,
+        // 'Ay': Ay,
+        // 'Az': Az,
+        // 'YAW': YAW,
+        // 'PITCH': PITCH,
+        // 'Roll': Roll,
+        // 'POT_F': POT_F,
+        // 'POT_R': POT_R,
+        // 'CurrentDC': CurrentDC,
+        // 'CurrentAC': CurrentAC,
+        // 'Pressure1': Pressure1,
+        // 'Pressure2': Pressure2
       };
 }
 
@@ -153,7 +195,9 @@ class _MyAppState extends State<MyApp> {
   String _status = "Idle";
   List<Widget> _ports = [];
   // ignore: prefer_final_fields
-  List<Widget> _serialData = [const Text("please wait")];
+  List<Widget> _serialData = [
+    const Text("not reading any serial data...connect and try again")
+  ];
 
   StreamSubscription<String>? _subscription;
   Transaction<String>? _transaction;
@@ -167,11 +211,6 @@ class _MyAppState extends State<MyApp> {
   int count = 1;
   var sheet;
   var excel;
-  // final excel = Excel.createExcel();
-  //     final sheet = excel[excel.getDefaultSheet()!];
-
-  // List<dynamic> row = ["Speed", "Battery", "Time"];
-  // rows.add(row)
 
   // ignore: prefer_final_fields, unused_field
   TextEditingController controller = TextEditingController();
@@ -179,14 +218,6 @@ class _MyAppState extends State<MyApp> {
   // @override void dispose() {
   //   _textController.dispose();
   //   super.dispose();
-  // }
-
-  // Future makeCSV() {
-  //   final excel = Excel.createExcel();
-  //   final sheet = excel[excel.getDefaultSheet()!];
-  //   sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0)).value =
-  //       'Time';
-  //   // return null;
   // }
 
   Future<bool> _connectTo(device) async {
@@ -231,24 +262,6 @@ class _MyAppState extends State<MyApp> {
 
     _transaction = Transaction.stringTerminated(
         _port!.inputStream as Stream<Uint8List>, Uint8List.fromList([13, 10]));
-
-//     XYZ(data) async {
-//       Map<Permission, PermissionStatus> statuses = await [
-//         Permission.storage,
-//       ].request();
-//       String csv = const ListToCsvConverter().convert(rows);
-
-// // String dir = await ExtStorage.getExternalStoragePublicDirectory(
-// //     ExtStorage.DIRECTORY_DOWNLOADS);
-// // print("dir $dir");
-// // String file = "$dir";
-
-// // String dir = (await getExternalStorageDirectory()).path;
-// //   String filePath = "$dir/list.csv";
-
-//       File f = File("file:///storage/emulated/0/Documents/test.csv");
-//       f.writeAsString(csv);
-//     }
 
     _subscription = _transaction!.stream.listen((String line) {
       setState(() {
@@ -309,17 +322,51 @@ class _MyAppState extends State<MyApp> {
 
   exportToFlutter(x) async {
     print('entered csv function');
-    // if (isCreated == false) {
-    //   final excel = Excel.createExcel();
-    //   final sheet = excel[excel.getDefaultSheet()!];
-    //   sheet
-    //       .cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0))
-    //       .value = 'Time';
-    // }
     // final excel = Excel.createExcel();
     // final sheet = excel[excel.getDefaultSheet()!];
     // sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0)).value =
     //     'Time';
+    sheet.insertRowIterables([
+      'Time',
+      'Speed',
+      'Battery',
+      'BatteryTotalCurrent',
+      'BatteryAvgVoltage',
+      'Battery_1_Current',
+      'Battery_2_Current',
+      'Battery_3_Current',
+      'Battery_1_SOC',
+      'Battery_2_SOC',
+      'Battery_3_SOC',
+      'Battery_1_VOLT',
+      'Battery_2_VOLT',
+      'Battery_3_VOLT',
+      'Throttle_percentage',
+      'Controller_Temp',
+      'Motor_temp',
+      'Motor_DC_Current',
+      'Motor_DC_Voltage',
+      'Motor_AC_Voltage',
+      'Motor_AC_Current',
+      'Trip',
+      // 'Distance(KM)',
+      // 'Ax',
+      // 'Ay',
+      // 'Az',
+      // 'YAW',
+      // 'PITCH',
+      // 'Roll',
+      // 'T1',
+      // 'T2',
+      // 'T3',
+      // 'T4',
+      // 'POT_F',
+      // 'POT_R',
+      // 'CurrentDC',
+      // 'CurrentAC',
+      // 'Pressure1',
+      // 'Pressure2'
+    ], 0);
 
     //  final excel = Excel.createExcel();
 
@@ -331,7 +378,47 @@ class _MyAppState extends State<MyApp> {
     // }
     // sheet.appendRow(['abhilash', data.Time]);
     if (logging == true) {
-      sheet.insertRowIterables([data.Time], count);
+      sheet.insertRowIterables([
+        data.Time,
+        data.Speed,
+        data.Battery,
+        data.BatteryTotalCurrent,
+        data.BatteryAvgVoltage,
+        data.Battery_1_current,
+        data.Battery_2_current,
+        data.Battery_3_current,
+        data.Battery_1_SOC,
+        data.Battery_2_SOC,
+        data.Battery_3_SOC,
+        data.Battery_1_VOLT,
+        data.Battery_2_VOLT,
+        data.Battery_3_VOLT,
+        data.Throttle_percentage,
+        data.Controller_Temp,
+        data.Motor_temp,
+        data.Motor_DC_Current,
+        data.Motor_DC_Voltage,
+        data.Motor_AC_Voltage,
+        data.Motor_AC_Current,
+        data.TRIP_1,
+        // data.Distance,
+        // data.Ax,
+        // data.Ay,
+        // data.Az,
+        // data.YAW,
+        // data.PITCH,
+        // data.Roll,
+        // data.T_sense1,
+        // data.T_sense2,
+        // data.T_sense3,
+        // data.T_sense4,
+        // data.POT_F,
+        // data.POT_R,
+        // data.CurrentDC,
+        // data.CurrentAC,
+        // data.Pressure1,
+        // data.Pressure2
+      ], count);
       var fileBytes = excel.save();
       File(join("/storage/emulated/0/Download/$_csvName.xlsx"))
         ..createSync(recursive: true)
@@ -401,266 +488,994 @@ class _MyAppState extends State<MyApp> {
     // ignore: avoid_print
     print(_serialData);
     return MaterialApp(
+        initialRoute: '/',
+        routes: {
+          // '/': (context) => const MyApp(),
+          '/speed': (context) => const Speed(),
+        },
         home: Scaffold(
-      appBar: AppBar(
-        title: const Text('USB Serial Plugin app'),
-      ),
-      body: Center(
-          child: Column(children: <Widget>[
-        Text(
-            _ports.isNotEmpty
-                ? "Available Serial Ports"
-                : "No serial devices available",
-            style: Theme.of(context).textTheme.titleLarge),
-        ..._ports,
-        Text('Status: $_status\n'),
-        Text('info: ${_port.toString()}\n'),
-        TextField(
-          controller: controller,
-          onSubmitted: (String value) {
-            setState(() {
-              _csvName = controller.text;
-            });
-          },
-          onChanged: (String value) {
-            setState(() {
-              _csvName = controller.text;
-            });
-          },
-        ),
-        // ElevatedButton(onPressed: exportToFlutter(data), child: const Text('start logging')),
-        // ElevatedButton(onPressed: exportToFlutter(data), child: const Text('stop logging')),
-        // Text("Result Data", style: Theme.of(context).textTheme.titleLarge),
-        // ..._serialData,
-
-        if (yolo.isNotEmpty)
-          Text(
-            'Time : ' + data.Time,
-            style: Theme.of(context).textTheme.titleSmall,
+          appBar: AppBar(
+            title: const Text('Data Acquisition'),
           ),
-        if (logging == false && _csvName.length > 2 && _status == 'Connected')
-          ElevatedButton(onPressed: setCreation, child: const Text('startLog')),
-        if (logging == true)
-          ElevatedButton(
-            onPressed: stopLogger,
-            style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all<Color>(Colors.red)),
-            child: const Text('stopLog'),
+          body: SingleChildScrollView(
+            child: Center(
+                child: Column(children: <Widget>[
+              Text(
+                  _ports.isNotEmpty
+                      ? "Available Serial Ports"
+                      : "No serial devices available",
+                  style: Theme.of(context).textTheme.titleLarge),
+              ..._ports,
+              Text('Status: $_status\n'),
+              Text('info: ${_port.toString()}\n'),
+              if (yolo.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(left: 90, right: 90),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: controller,
+                        onSubmitted: (String value) {
+                          setState(() {
+                            _csvName = controller.text;
+                          });
+                        },
+                        onChanged: (String value) {
+                          setState(() {
+                            _csvName = controller.text;
+                          });
+                        },
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: 'File Name',
+                        ),
+                        style: const TextStyle(
+                            fontSize: 40.0, height: 1, color: Colors.black),
+                      ),
+                    ],
+                  ),
+                ),
+              // ElevatedButton(onPressed: exportToFlutter(data), child: const Text('start logging')),
+              // ElevatedButton(onPressed: exportToFlutter(data), child: const Text('stop logging')),
+              Text("Result Data",
+                  style: Theme.of(context).textTheme.titleLarge),
+              ..._serialData,
+
+              if (yolo.isNotEmpty)
+                Text(
+                  'Time : ' + data.Time,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              if (logging == false &&
+                  _csvName.length > 2 &&
+                  _status == 'Connected')
+                ElevatedButton(
+                    onPressed: setCreation, child: const Text('startLog')),
+              if (logging == true)
+                ElevatedButton(
+                  onPressed: stopLogger,
+                  style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.all<Color>(Colors.red)),
+                  child: const Text('stopLog'),
+                ),
+              if (yolo.isNotEmpty)
+                Text(
+                  'Speed :' + data.Speed + 'Km/H',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              if (yolo.isNotEmpty)
+                Builder(builder: (context) {
+                  return ElevatedButton(
+                      onPressed: () {
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(builder: (context) => const Speed()),
+                        // );
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const Speed(),
+                            // Pass the arguments as part of the RouteSettings. The
+                            // DetailScreen reads the arguments from these settings.
+                            settings: RouteSettings(
+                              arguments: [data.Speed, data.Battery],
+                            ),
+                          ),
+                        );
+                      },
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              const Color.fromARGB(255, 31, 143, 18))),
+                      child: const Text('Speedometer'));
+                }),
+
+              // if (yolo.isNotEmpty) Text('Speed : ' + data.Speed),
+              // if (yolo.isNotEmpty) Text('Battery : ' + data.Battery),
+              // if (yolo.isNotEmpty)
+              //   Text('BatteryTotalCurrent : ' + data.BatteryTotalCurrent),
+              // if (yolo.isNotEmpty)
+              //   Text('BatteryAvgVoltage : ' + data.BatteryAvgVoltage),
+              // if (yolo.isNotEmpty)
+              //   Text('Battery_1_current : ' + data.Battery_1_current),
+              // if (yolo.isNotEmpty)
+              //   Text('Battery_2_current : ' + data.Battery_2_current),
+              // if (yolo.isNotEmpty)
+              //   Text('Battery_3_current : ' + data.Battery_3_current),
+              // if (yolo.isNotEmpty) Text('Battery_1_SOC : ' + data.Battery_1_SOC),
+              // if (yolo.isNotEmpty) Text('Battery_2_SOC : ' + data.Battery_2_SOC),
+              // if (yolo.isNotEmpty) Text('Battery_3_SOC : ' + data.Battery_3_SOC),
+              // if (yolo.isNotEmpty) Text('Battery_1_VOLT : ' + data.Battery_1_VOLT),
+              // if (yolo.isNotEmpty) Text('Battery_2_VOLT : ' + data.Battery_2_VOLT),
+              // if (yolo.isNotEmpty) Text('Battery_3_VOLT : ' + data.Battery_3_VOLT),
+              // if (yolo.isNotEmpty)
+              //   Text('Throttle_percentage : ' + data.Throttle_percentage),
+              // if (yolo.isNotEmpty) Text('Controller_Temp : ' + data.Controller_Temp),
+              // if (yolo.isNotEmpty) Text('Motor_temp : ' + data.Motor_temp),
+              // if (yolo.isNotEmpty)
+              //   Text('Motor_DC_Current : ' + data.Motor_DC_Current),
+              // if (yolo.isNotEmpty)
+              //   Text('Motor_DC_Voltage : ' + data.Motor_DC_Voltage),
+              // if (yolo.isNotEmpty)
+              //   Text('Motor_AC_Voltage : ' + data.Motor_AC_Voltage),
+              // if (yolo.isNotEmpty)
+              //   Text('Motor_AC_Current : ' + data.Motor_AC_Current),
+              // if (yolo.isNotEmpty) Text('TRIP_1 : ' + data.TRIP_1),
+              // if (yolo.isNotEmpty) Text('T_sense1 : ' + data.T_sense1),
+              // if (yolo.isNotEmpty) Text('T_sense2 : ' + data.T_sense2),
+              // if (yolo.isNotEmpty) Text('T_sense3 : ' + data.T_sense3),
+              // if (yolo.isNotEmpty) Text('T_sense4 : ' + data.T_sense4),
+
+              // ElevatedButton(
+              //     onPressed: exportToFlutter, child: const Text('generate CSV'))
+
+              if (yolo.isNotEmpty)
+                Table(
+                  border: TableBorder.all(),
+                  columnWidths: const <int, TableColumnWidth>{
+                    0: IntrinsicColumnWidth(),
+                    1: FlexColumnWidth(),
+                    2: FixedColumnWidth(64),
+                  },
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                  children: <TableRow>[
+                    TableRow(
+                      children: <Widget>[
+                        const SizedBox(
+                            height: 32,
+                            width: 152,
+                            // color: Colors.green,
+                            child: Align(
+                                alignment: Alignment.center,
+                                child: Text('Speed',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Speed,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 32,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Time',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Time,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 32,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Battery',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Battery,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('BatteryTotalCurrent',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.BatteryTotalCurrent,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('BatteryAvgVoltage',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.BatteryAvgVoltage,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Battery_1_Current',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Battery_1_current,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Battery_2_Current',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Battery_2_current,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Battery_3_Current',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Battery_3_current,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Battery_1_SOC',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Battery_1_SOC,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Battery_2_SOC',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Battery_2_SOC,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Battery_3_SOC',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Battery_3_SOC,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Battery_1_VOLT',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Battery_1_VOLT,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Battery_2_VOLT',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Battery_2_VOLT,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Battery_3_VOLT',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Battery_3_VOLT,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Throttle Percentage',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Throttle_percentage,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Controller Temp',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Controller_Temp,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Motor Temp',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Motor_temp,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Motor DC Current',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Motor_DC_Current,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Motor DC Voltage',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Motor_DC_Voltage,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Motor AC Voltage',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Motor_AC_Voltage,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Motor AC Current',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.Motor_AC_Current,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('Trip',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.TRIP_1,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('T Sense 1',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.T_sense1,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('T Sense 2',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.T_sense2,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('T Sense 3',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.T_sense3,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        Container(
+                            height: 50,
+                            width: 152,
+                            // color: Colors.green,
+                            child: const Align(
+                                alignment: Alignment.center,
+                                child: Text('T Sense 4',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    )))),
+                        TableCell(
+                          // verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            height: 32,
+                            width: 32,
+                            // color: Colors.red,
+                            child: Text(data.T_sense4,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          height: 64,
+                          // color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+            ])),
           ),
-           Text('Speed : ')
-
-        // if (yolo.isNotEmpty) Text('Speed : ' + data.Speed),
-        // if (yolo.isNotEmpty) Text('Battery : ' + data.Battery),
-        // if (yolo.isNotEmpty)
-        //   Text('BatteryTotalCurrent : ' + data.BatteryTotalCurrent),
-        // if (yolo.isNotEmpty)
-        //   Text('BatteryAvgVoltage : ' + data.BatteryAvgVoltage),
-        // if (yolo.isNotEmpty)
-        //   Text('Battery_1_current : ' + data.Battery_1_current),
-        // if (yolo.isNotEmpty)
-        //   Text('Battery_2_current : ' + data.Battery_2_current),
-        // if (yolo.isNotEmpty)
-        //   Text('Battery_3_current : ' + data.Battery_3_current),
-        // if (yolo.isNotEmpty) Text('Battery_1_SOC : ' + data.Battery_1_SOC),
-        // if (yolo.isNotEmpty) Text('Battery_2_SOC : ' + data.Battery_2_SOC),
-        // if (yolo.isNotEmpty) Text('Battery_3_SOC : ' + data.Battery_3_SOC),
-        // if (yolo.isNotEmpty) Text('Battery_1_VOLT : ' + data.Battery_1_VOLT),
-        // if (yolo.isNotEmpty) Text('Battery_2_VOLT : ' + data.Battery_2_VOLT),
-        // if (yolo.isNotEmpty) Text('Battery_3_VOLT : ' + data.Battery_3_VOLT),
-        // if (yolo.isNotEmpty)
-        //   Text('Throttle_percentage : ' + data.Throttle_percentage),
-        // if (yolo.isNotEmpty) Text('Controller_Temp : ' + data.Controller_Temp),
-        // if (yolo.isNotEmpty) Text('Motor_temp : ' + data.Motor_temp),
-        // if (yolo.isNotEmpty)
-        //   Text('Motor_DC_Current : ' + data.Motor_DC_Current),
-        // if (yolo.isNotEmpty)
-        //   Text('Motor_DC_Voltage : ' + data.Motor_DC_Voltage),
-        // if (yolo.isNotEmpty)
-        //   Text('Motor_AC_Voltage : ' + data.Motor_AC_Voltage),
-        // if (yolo.isNotEmpty)
-        //   Text('Motor_AC_Current : ' + data.Motor_AC_Current),
-        // if (yolo.isNotEmpty) Text('TRIP_1 : ' + data.TRIP_1),
-        // if (yolo.isNotEmpty) Text('T_sense1 : ' + data.T_sense1),
-        // if (yolo.isNotEmpty) Text('T_sense2 : ' + data.T_sense2),
-        // if (yolo.isNotEmpty) Text('T_sense3 : ' + data.T_sense3),
-        // if (yolo.isNotEmpty) Text('T_sense4 : ' + data.T_sense4),
-
-        // ElevatedButton(
-        //     onPressed: exportToFlutter, child: const Text('generate CSV'))
-
-        // if (yolo.isNotEmpty)
-        //   Table(
-        //     border: TableBorder.all(),
-        //     columnWidths: const <int, TableColumnWidth>{
-        //       0: IntrinsicColumnWidth(),
-        //       1: FlexColumnWidth(),
-        //       2: FixedColumnWidth(64),
-        //     },
-        //     defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-        //     children: <TableRow>[
-        //       TableRow(
-        //         children: <Widget>[
-        //           Container(
-        //               height: 32,
-        //               width: 152,
-        //               // color: Colors.green,
-        //               child: const Align(
-        //                   alignment: Alignment.center,
-        //                   child: Text('Speed',
-        //                       textAlign: TextAlign.center,
-        //                       style: TextStyle(
-        //                         fontSize: 20,
-        //                       )))),
-        //           TableCell(
-        //             // verticalAlignment: TableCellVerticalAlignment.top,
-        //             child: Container(
-        //               height: 32,
-        //               width: 32,
-        //               // color: Colors.red,
-        //               child: Text(data.Speed,
-        //                   textAlign: TextAlign.center,
-        //                   style: const TextStyle(
-        //                     fontSize: 20,
-        //                   )),
-        //             ),
-        //           ),
-        //           Container(
-        //             height: 64,
-        //             // color: Colors.blue,
-        //           ),
-        //         ],
-        //       ),
-        //       TableRow(
-        //         children: <Widget>[
-        //           Container(
-        //               height: 32,
-        //               width: 152,
-        //               // color: Colors.green,
-        //               child: const Align(
-        //                   alignment: Alignment.center,
-        //                   child: Text('Time',
-        //                       textAlign: TextAlign.center,
-        //                       style: TextStyle(
-        //                         fontSize: 20,
-        //                       )))),
-        //           TableCell(
-        //             // verticalAlignment: TableCellVerticalAlignment.top,
-        //             child: Container(
-        //               height: 32,
-        //               width: 32,
-        //               // color: Colors.red,
-        //               child: Text(data.Time,
-        //                   textAlign: TextAlign.center,
-        //                   style: const TextStyle(
-        //                     fontSize: 20,
-        //                   )),
-        //             ),
-        //           ),
-        //           Container(
-        //             height: 64,
-        //             // color: Colors.blue,
-        //           ),
-        //         ],
-        //       ),
-        //       TableRow(
-        //         children: <Widget>[
-        //           Container(
-        //               height: 32,
-        //               width: 152,
-        //               // color: Colors.green,
-        //               child: const Align(
-        //                   alignment: Alignment.center,
-        //                   child: Text('Battery',
-        //                       textAlign: TextAlign.center,
-        //                       style: TextStyle(
-        //                         fontSize: 20,
-        //                       )))),
-        //           TableCell(
-        //             // verticalAlignment: TableCellVerticalAlignment.top,
-        //             child: Container(
-        //               height: 32,
-        //               width: 32,
-        //               // color: Colors.red,
-        //               child: Text(data.Battery,
-        //                   textAlign: TextAlign.center,
-        //                   style: const TextStyle(
-        //                     fontSize: 20,
-        //                   )),
-        //             ),
-        //           ),
-        //           Container(
-        //             height: 64,
-        //             // color: Colors.blue,
-        //           ),
-        //         ],
-        //       ),
-        //       TableRow(
-        //         children: <Widget>[
-        //           Container(
-        //               height: 50,
-        //               width: 152,
-        //               // color: Colors.green,
-        //               child: const Align(
-        //                   alignment: Alignment.center,
-        //                   child: Text('BatteryTotalCurrent',
-        //                       textAlign: TextAlign.center,
-        //                       style: TextStyle(
-        //                         fontSize: 16,
-        //                       )))),
-        //           TableCell(
-        //             // verticalAlignment: TableCellVerticalAlignment.top,
-        //             child: Container(
-        //               height: 32,
-        //               width: 32,
-        //               // color: Colors.red,
-        //               child: Text(data.BatteryTotalCurrent,
-        //                   textAlign: TextAlign.center,
-        //                   style: const TextStyle(
-        //                     fontSize: 20,
-        //                   )),
-        //             ),
-        //           ),
-        //           Container(
-        //             height: 64,
-        //             // color: Colors.blue,
-        //           ),
-        //         ],
-        //       ),
-        //       TableRow(
-        //         children: <Widget>[
-        //           Container(
-        //               height: 50,
-        //               width: 152,
-        //               // color: Colors.green,
-        //               child: const Align(
-        //                   alignment: Alignment.center,
-        //                   child: Text('BatteryAvgVoltage',
-        //                       textAlign: TextAlign.center,
-        //                       style: TextStyle(
-        //                         fontSize: 20,
-        //                       )))),
-        //           TableCell(
-        //             // verticalAlignment: TableCellVerticalAlignment.top,
-        //             child: Container(
-        //               height: 32,
-        //               width: 32,
-        //               // color: Colors.red,
-        //               child: Text(data.BatteryAvgVoltage,
-        //                   textAlign: TextAlign.center,
-        //                   style: const TextStyle(
-        //                     fontSize: 20,
-        //                   )),
-        //             ),
-        //           ),
-        //           Container(
-        //             height: 64,
-        //             // color: Colors.blue,
-        //           ),
-        //         ],
-        //       ),
-        //     ],
-        //   ),
-      ])),
-    ));
+        ));
   }
 }
