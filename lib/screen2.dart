@@ -20,7 +20,14 @@ class Speed extends StatelessWidget {
               );
             }),
           ),
-          Text(data[0])
+          Text(
+            'Speed : '+data[0]+ ' Km/H',
+            style: const TextStyle(
+              fontSize: 68,
+              height: 1.8, //line height 90% of actual height
+              color: Colors.orangeAccent,
+            ),
+          )
         ],
       ),
     );
